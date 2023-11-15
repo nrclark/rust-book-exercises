@@ -1,5 +1,7 @@
+PROJECT_NAME := $(notdir $(subst %/,%,$(abspath .)))
+
 export RUSTFLAGS := -C target-cpu=native
-CARGO_VERBS := clippy run build
+CARGO_VERBS := clippy run build fmt
 
 $(foreach x,$(CARGO_VERBS),cargo-$x): cargo-%:
 	cargo $* --release
@@ -7,5 +9,11 @@ $(foreach x,$(CARGO_VERBS),cargo-$x): cargo-%:
 $(CARGO_VERBS): %:
 	cargo $* --release
 
-clean:
-	rm -rf target
+cargo-clean clean:
+	cargo clean
+
+target/release/$(PROJECT_NAME): build
+
+size: target/release/$(PROJECT_NAME)
+	strip $<
+	size $<
