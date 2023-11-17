@@ -1,8 +1,5 @@
 #![warn(clippy::pedantic)]
 
-#[allow(dead_code)]
-mod common;
-
 const LINE_PAIRS: [(&str, &str); 12] = [
     ("first", "a partridge in a pear tree"),
     ("second", "two turtle doves"),
@@ -19,20 +16,19 @@ const LINE_PAIRS: [(&str, &str); 12] = [
 ];
 
 fn capitalize(input: &str) -> String {
-    let mut result = input.to_string();
-    if let Some(first_char) = result.chars().next() {
-        result.replace_range(
-            0..first_char.len_utf8(),
-            &first_char.to_uppercase().to_string(),
-        );
+    if input.is_empty() {
+        return String::new();
     }
-    result
+
+    let mut chars = input.chars();
+    let first_char = chars.next().unwrap().to_uppercase().to_string();
+    first_char + chars.as_str()
 }
 
-fn lyrics(day: u32) -> Option<String> {
+fn lyrics(mut day: u32) -> Option<String> {
     let mut result = String::new();
 
-    if !(0..=12).contains(&day) {
+    if day > 11 {
         return None;
     }
 
@@ -43,18 +39,32 @@ fn lyrics(day: u32) -> Option<String> {
         )
         .as_str(),
     );
-    let mut day = day;
+
+    if day == 0 {
+        result.push_str(capitalize(LINE_PAIRS[day as usize].1).as_str());
+        result.push_str(".\n");
+        return Some(result);
+    }
+
+    let mut capitalized: [String; 12] = Default::default();
+
+    for (x, element) in capitalized.iter_mut().enumerate() {
+        if x > (day as usize) {
+            break;
+        }
+        *element = capitalize(LINE_PAIRS[x].1);
+    }
 
     Some(loop {
-        result += capitalize(LINE_PAIRS[day as usize].1).as_str();
-        match day {
-            0 => {
-                result.push_str(".\n");
-                break result;
-            }
-            1 => result.push_str(", and\n"),
-            _ => result.push_str(",\n"),
+        if day == 0 {
+            result.push_str("And ");
+            result.push_str(LINE_PAIRS[day as usize].1);
+            result.push_str(".\n");
+            break result;
         }
+
+        result.push_str(capitalized[day as usize].as_str());
+        result.push_str(",\n");
         day -= 1;
     })
 }
